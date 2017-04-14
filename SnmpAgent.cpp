@@ -1,4 +1,17 @@
 /*
+ * SnmpAgent.cpp - A very simple SNMP Agent Library for Arduino.
+ * Copyright (C) 2017 Mikael Schultz <mikael@dofiloop.com>
+ * 
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
  * http://www.rane.com/pdf/ranenotes/SNMP_Simple_Network_Management_Protocol.pdf
  */
 
@@ -103,6 +116,22 @@ bool SNMPAgent::SetCommunity(char *value PROGMEM)
     }
     else
         return false;
+}
+
+bool SNMPAgent::SetValue(uint8_t index, char *value)
+{
+    SnmpValue *snmpValue;
+    
+    if (index >= 0 && index < MAX_SNMP_VALUES) {
+        snmpValue = &snmpValues[index];
+        snmpValue->type = OctetString;
+        snmpValue->value = value;
+    }
+}
+
+bool SNMPAgent::SetValue(uint8_t index, uint32_t *value)
+{
+    
 }
 
 /*
@@ -354,6 +383,11 @@ bool SNMPAgent::ProcessPDU()
             memcpy(snmpPDU.varbind_list.list[0].value.value, value1, oid_value_length);
             snmpPDU.varbind_list.list[0].value.length = oid_value_length;
 
+        } else if (ValueExists(oid)) {
+            Serial.print(F("OID Found: "));
+            Serial.println(oid);
+        
+
         } else {
             snmpPDU.error = NoSuchName;
             snmpPDU.varbind_list.list[0].value.type = Null;
@@ -366,6 +400,22 @@ bool SNMPAgent::ProcessPDU()
         snmpMessage.pdu.length += oid_value_length;
         snmpMessage.length += oid_value_length;
     }
+}
+
+bool SNMPAgent::ValueExists(char *oid) 
+{
+    const char base_oid[] PROGMEM = "1.3.6.1.4.1.49701.1.";
+    char full_oid[32];
+    char index[8];
+    for (uint8_t i=1; i<=MAX_SNMP_VALUES; i++) {
+        strcpy(full_oid, base_oid);
+        itoa(i, index, 10);
+        strcat(full_oid, index);
+        strcat(full_oid, ".0");
+        if (strcmp(full_oid, oid) == 0)
+            return true;
+    }
+    return false;
 }
 
 /*
