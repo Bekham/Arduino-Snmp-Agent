@@ -118,20 +118,36 @@ bool SNMPAgent::SetCommunity(char *value PROGMEM)
         return false;
 }
 
+/*
+ *  Maps a used definable value to an SnmpValue inside
+ *  the array snmpValues.
+ *  The value is of type char pointer
+ */
 bool SNMPAgent::SetValue(uint8_t index, char *value)
 {
     SnmpValue *snmpValue;
     
     if (index >= 0 && index < MAX_SNMP_VALUES) {
-        snmpValue = &snmpValues[index];
+        snmpValue = &snmpValues[index-1];
         snmpValue->type = OctetString;
         snmpValue->value = value;
     }
 }
 
+/*
+ *  Maps a used definable value to an SnmpValue inside
+ *  the array snmpValues.
+ *  The value is of type uint32_t pointer
+ */
 bool SNMPAgent::SetValue(uint8_t index, uint32_t *value)
 {
+    SnmpValue *snmpValue;
     
+    if (index >= 0 && index < MAX_SNMP_VALUES) {
+        snmpValue = &snmpValues[index-1];
+        snmpValue->type = Integer;
+        snmpValue->value = value;
+    }
 }
 
 /*
@@ -333,6 +349,7 @@ bool SNMPAgent::ProcessPDU()
         char oid[VARBIND_OID_STRING_MAX]; 
         snmpPDU.varbind_list.list[0].GetOID(oid);
         uint8_t oid_value_length = 0;
+        int8_t custom_oid_index = OidExists(oid);
 
         snmpMessage.pdu.type = GetResponse;
 
@@ -376,17 +393,28 @@ bool SNMPAgent::ProcessPDU()
             memcpy_P(snmpPDU.varbind_list.list[0].value.value, sysLocation_value, oid_value_length);
             snmpPDU.varbind_list.list[0].value.length = oid_value_length;
 
-        // 1.3.6.1.4.1.49701.1.1.0
-        } else if (strcmp_P(oid, usrValue_oid) == 0) {
-            snmpPDU.varbind_list.list[0].value.type = OctetString;
-            oid_value_length = strlen(value1);
-            memcpy(snmpPDU.varbind_list.list[0].value.value, value1, oid_value_length);
-            snmpPDU.varbind_list.list[0].value.length = oid_value_length;
+        // Requesting "1.3.6.1.4.1.49701.1.X.0"
+        // That is, user programmable values
+        } else if (custom_oid_index >= 0) {
+            SnmpValue *currentValue = &snmpValues[custom_oid_index];
 
-        } else if (ValueExists(oid)) {
-            Serial.print(F("OID Found: "));
-            Serial.println(oid);
-        
+            if (currentValue->type == OctetString) {
+                snmpPDU.varbind_list.list[0].value.type = currentValue->type;
+                oid_value_length = strlen(currentValue->value);
+                memcpy(snmpPDU.varbind_list.list[0].value.value, currentValue->value, oid_value_length);
+                snmpPDU.varbind_list.list[0].value.length = oid_value_length;
+            
+            } else if (currentValue->type == Integer) {
+                snmpPDU.varbind_list.list[0].value.type = currentValue->type;
+                oid_value_length = 4;
+                uint32_u temp;
+                memcpy(&temp.uint32, currentValue->value, 4);
+                snmpPDU.varbind_list.list[0].value.value[0] = temp.data[3];
+                snmpPDU.varbind_list.list[0].value.value[1] = temp.data[2];
+                snmpPDU.varbind_list.list[0].value.value[2] = temp.data[1];
+                snmpPDU.varbind_list.list[0].value.value[3] = temp.data[0];
+                snmpPDU.varbind_list.list[0].value.length = oid_value_length;
+            }
 
         } else {
             snmpPDU.error = NoSuchName;
@@ -402,9 +430,16 @@ bool SNMPAgent::ProcessPDU()
     }
 }
 
-bool SNMPAgent::ValueExists(char *oid) 
+/*
+ *  A simple method that checks if the current OID is
+ *  within the range 1..MAX_SNMP_VALUES (which is defined in SnmpAgent.h)
+ *  If it exists, the returned value is the index of the
+ *  SnmpValue object inside the array snmpValues.
+ */
+int8_t SNMPAgent::OidExists(char *oid) 
 {
     const char base_oid[] PROGMEM = "1.3.6.1.4.1.49701.1.";
+    const uint8_t oid_length = strlen(oid);
     char full_oid[32];
     char index[8];
     for (uint8_t i=1; i<=MAX_SNMP_VALUES; i++) {
@@ -412,10 +447,10 @@ bool SNMPAgent::ValueExists(char *oid)
         itoa(i, index, 10);
         strcat(full_oid, index);
         strcat(full_oid, ".0");
-        if (strcmp(full_oid, oid) == 0)
-            return true;
+        if (strncmp(full_oid, oid, oid_length) == 0)
+            return i-1;
     }
-    return false;
+    return -1;
 }
 
 /*

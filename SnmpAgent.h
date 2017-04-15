@@ -59,8 +59,6 @@ class SNMPAgent {
         bool SetValue(uint8_t index, char *value);
         bool SetValue(uint8_t index, uint32_t *value);
 
-        char *value1;
-        
     private:
         char      community[COMMUNITY_MAX_LENGTH];
         uint16_t  port;
@@ -79,7 +77,7 @@ class SNMPAgent {
         bool      ParsePDU();
         bool      ProcessPDU();
         bool      SendResponse();
-        bool      ValueExists(char *oid);
+        int8_t    OidExists(char *oid);
 };
 
 #endif

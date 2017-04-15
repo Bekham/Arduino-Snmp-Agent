@@ -6,7 +6,7 @@
 
 SNMPAgent SnmpAgent;
 OneWire oneWire(2);
-DallasTemperature sensors(&oneWire);
+DallasTemperature Sensors(&oneWire);
 
 static byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEF};
 char temperature[6];
@@ -16,21 +16,25 @@ void setup() {
 
   // put your setup code here, to run once:
   Serial.begin(115200);
-
-  sensors.begin();
-
+  Sensors.begin();
   Ethernet.begin(mac);
   
   Serial.print("SNMP Agent IP: "); Serial.println(Ethernet.localIP());
 
+  // Start UDP Server at port 161
   SnmpAgent.begin();
+
+  // Setup default SNMP Agent information
   SnmpAgent.SetCommunity(PSTR("public"));
   SnmpAgent.SetContact(PSTR("vader@deathstar.com"));
   SnmpAgent.SetDescription(PSTR("Force Sensor"));
   SnmpAgent.SetLocation(PSTR("Death Star"));
   SnmpAgent.SetSystemName(PSTR("arduino"));
-  SnmpAgent.SetValue(1, temperature);
-  SnmpAgent.value1 = temperature;
+
+  // Setup custom SNMP values (1.3.6.1.4.1.49701.1.X.0),
+  // where X is a value between 1 and 5 (defined by MAX_SNMP_VALUES in SnmpAgent.h)
+  SnmpAgent.SetValue(1, temperature); // 1.3.6.1.4.1.49701.1.1.0
+  SnmpAgent.SetValue(2, &lastMillis); // 1.3.6.1.4.1.49701.1.2.0
 }
 
 void loop() {
@@ -39,8 +43,8 @@ void loop() {
 
   // Update the temperature variable every 10 seconds
   if (millis() - lastMillis > 10000) {
-    sensors.requestTemperatures(); // Send the command to get temperatures
-    dtostrf(sensors.getTempCByIndex(0), 1, 1, temperature);
+    Sensors.requestTemperatures(); // Send the command to get temperatures
+    dtostrf(Sensors.getTempCByIndex(0), 1, 1, temperature);
     lastMillis = millis();
   }
 }
