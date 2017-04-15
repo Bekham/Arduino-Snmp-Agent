@@ -25,11 +25,11 @@ void setup() {
   SnmpAgent.begin();
 
   // Setup default SNMP Agent information
-  SnmpAgent.SetCommunity(PSTR("public"));
-  SnmpAgent.SetContact(PSTR("vader@deathstar.com"));
-  SnmpAgent.SetDescription(PSTR("Force Sensor"));
-  SnmpAgent.SetLocation(PSTR("Death Star"));
-  SnmpAgent.SetSystemName(PSTR("arduino"));
+  SnmpAgent.SetCommunity(PSTR("public"));             // Password/Community (Read-Only)
+  SnmpAgent.SetDescription(PSTR("Force Sensor"));     // 1.3.6.1.2.1.1.1.0
+  SnmpAgent.SetContact(PSTR("vader@deathstar.com"));  // 1.3.6.1.2.1.1.4.0
+  SnmpAgent.SetLocation(PSTR("Death Star"));          // 1.3.6.1.2.1.1.6.0
+  SnmpAgent.SetSystemName(PSTR("arduino"));           // 1.3.6.1.2.1.1.5.0
 
   // Setup custom SNMP values (1.3.6.1.4.1.49701.1.X.0),
   // where X is a value between 1 and 5 (defined by MAX_SNMP_VALUES in SnmpAgent.h)
