@@ -1,5 +1,14 @@
 # Arduino-Snmp-Agent
-Arduino Snmp Agent
+
+The Arduino SnmpAgent is a very small and feature slim implementation of the SNMP (Simple Network Management Protocol) suitable for the limited resources of the Arduino. It is also more Arduino user friendly than most other SNMP libraries for Arduino out there.
+
+### Limitations
+
+Due to its slimness it comes with these limitations:
+
+* SnmpAgent only responds to SNMP Get Requests (no traps or walks)
+* Only one OID per request is allowed
+* It is compleatly read-only, so no SNMP Set Requests
 
 ## An example
 
@@ -58,7 +67,7 @@ SetValue() maps a variable to an OID.
 To get the string value of the variable *str_value*, run the snmpget command with the OID matching the first SnmpAgent custom value (that is 192.168.0.123 1.3.6.1.4.1.49701.1.**1**.0):
 
 ```bash
-computer:~ mikael$ snmpget -v1 -c public 192.168.0.123 1.3.6.1.4.1.49701.1.**1**.0
+computer:~ mikael$ snmpget -v1 -c public 192.168.0.123 1.3.6.1.4.1.49701.1.1.0
 SNMPv2-SMI::enterprises.49701.1.1.0 = STRING: "Hello World"
 ```
 ### Get the integer
@@ -66,6 +75,6 @@ SNMPv2-SMI::enterprises.49701.1.1.0 = STRING: "Hello World"
 To get the integer value of the variable *int_value*, run the snmpget command with the OID matching the second SnmpAgent custom value (that is 1.3.6.1.4.1.49701.1.**2**.0):
 
 ```bash
-computer:~ mikael$ snmpget -v1 -c public 192.168.0.123 1.3.6.1.4.1.49701.1.**2**.0
+computer:~ mikael$ snmpget -v1 -c public 192.168.0.123 1.3.6.1.4.1.49701.1.2.0
 SNMPv2-SMI::enterprises.49701.1.2.0 = INTEGER: 772737625
 ```
