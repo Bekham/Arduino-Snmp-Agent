@@ -24,6 +24,8 @@ For a better example, have a look at SnmpAgentDemo.ino
 SNMPAgent SnmpAgent;
 
 static byte mac[] = {0xCC, 0x1E, 0xCC, 0x1E, 0x00, 0x01};
+
+// These are the values that will be available via SNMP
 char str_value[12];
 uint32_t int_value = 0;
 
@@ -43,8 +45,8 @@ void setup() {
   SnmpAgent.SetSystemName(PSTR("arduino"));
 
   // Setup custom SNMP values (1.3.6.1.4.1.49701.1.X.0)
-  SnmpAgent.SetValue(1, temperature); // 1.3.6.1.4.1.49701.1.1.0
-  SnmpAgent.SetValue(2, &lastMillis); // 1.3.6.1.4.1.49701.1.2.0
+  SnmpAgent.SetValue(1, str_value);  // 1.3.6.1.4.1.49701.1.1.0
+  SnmpAgent.SetValue(2, &int_value); // 1.3.6.1.4.1.49701.1.2.0
 
   // Fill the string with something useful
   strcpy(str_value, "Hello World");
