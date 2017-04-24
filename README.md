@@ -15,6 +15,7 @@ Due to its slimness it comes with these limitations:
 This is a simple example using two values that can be retrieved via an SNMP Get Request.
 There is one character array (str_value) and one 32 bit integer value (int_value)
 that can be retrieved with snmpget.
+For a better example, have a look at SnmpAgentDemo.ino
 
 ```c
 #include "SnmpAgent.h"
@@ -22,7 +23,7 @@ that can be retrieved with snmpget.
 
 SNMPAgent SnmpAgent;
 
-static byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEF};
+static byte mac[] = {0xCC, 0x1E, 0xCC, 0x1E, 0x00, 0x01};
 char str_value[12];
 uint32_t int_value = 0;
 
@@ -41,8 +42,7 @@ void setup() {
   SnmpAgent.SetLocation(PSTR("Death Star"));
   SnmpAgent.SetSystemName(PSTR("arduino"));
 
-  // Setup custom SNMP values (1.3.6.1.4.1.49701.1.X.0),
-  // where X is a value between 1 and 5 (defined by MAX_SNMP_VALUES in SnmpAgent.h)
+  // Setup custom SNMP values (1.3.6.1.4.1.49701.1.X.0)
   SnmpAgent.SetValue(1, temperature); // 1.3.6.1.4.1.49701.1.1.0
   SnmpAgent.SetValue(2, &lastMillis); // 1.3.6.1.4.1.49701.1.2.0
 
@@ -64,7 +64,7 @@ SetValue() maps a variable to an OID.
 
 ### Get the string
 
-To get the string value of the variable *str_value*, run the snmpget command with the OID matching the first SnmpAgent custom value (that is 192.168.0.123 1.3.6.1.4.1.49701.1.**1**.0):
+To get the string value of the variable *str_value*, run the snmpget command with the OID matching the first SnmpAgent custom value (that is 1.3.6.1.4.1.49701.1.**1**.0):
 
 ```bash
 computer:~ mikael$ snmpget -v1 -c public 192.168.0.123 1.3.6.1.4.1.49701.1.1.0
